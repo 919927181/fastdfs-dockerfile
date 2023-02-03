@@ -1,0 +1,46 @@
+### 构建镜像
+
+1、参考
+https://github.com/qbanxiaoli/fastdfs/blob/master/Dockerfile
+https://github.com/ygqygq2/fastdfs-nginx/blob/master/Dockerfile
+
+2、构建fastdfs镜像
+ 
+（1）准备资源包
+
+|软件包|说明|下载地址|
+| ------------ | ------------ | ------------ |
+|libfastcommon|从FastDFS提取出来的公共函数库|https://github.com/happyfish100/libfastcommon/tags|
+|libserverframe|基础库-网络框架库|https://github.com/happyfish100/libserverframe/tags|
+|fastdfs-版本号.tar.gz|FastDFS本体文件|https://github.com/happyfish100/fastdfs/tags|
+|fastdfs-nginx-module-版本号.tar.gz|FastDFS的nginx模块，安装在nginx中|https://github.com/happyfish100/fastdfs-nginx-module/tags|
+|nginx-1.22.0|用于http文件访问|D:\工具箱\08. docker\3.docker_container_install\linux-offline-installation-software\nginx 离线安装|
+||||
+
+将下载的资源包存放到./soft目录下，并修改dockerfile中的各资源包的版本号
+
+（2）构建镜像，改成你用的版本号，可以使用centos基础镜像，自行修改dockerfile文件
+# cd /data/docker_build_images/fastdfs-v6.9.3
+# docker build -t liyanjing/fastdfs:6.9.3-alpine .
+# docker push liyanjing/fastdfs:6.9.3-alpine 
+
+（3）将 Docker镜像推送Dockerhub
+        1> 注册dockerhub： https://registry.hub.docker.com/
+        2> 登录docker：docker login （CentOS系统docker服务中操作）        
+        3> docker push liyanjing/fastdfs:6.9.3-alpine
+        4> 登出、退出： docker logout
+
+（4）保存镜像包
+# docker save  365195874042 -o  /data/docker/images/liyanjing-fastdfs-6.9.3-alpine.tar
+
+（5）将镜像包上传到待安装的主机上，然后加载出镜像来
+# docker load -i /data/docker/images/liyanjing-fastdfs-6.9.3-alpine.tar && docker tag  365195874042 liyanjing/fastdfs:6.9.3-alpine
+
+----
+
+附-v6.0.8构建镜像命令
+# cd /data/docker_build_images/fastdfs-v6.08
+# docker build -t liyanjing/fastdfs:6.08-alpine .
+
+# docker save  90108eb24b79 -o  /data/docker/images/liyanjing-fastdfs-6.08-alpine.tar
+# docker load -i /data/docker/images/lyj-fastdfs-6.08-alpine.tar && docker tag  90108eb24b79  liyanjing/fastdfs:6.08-alpine

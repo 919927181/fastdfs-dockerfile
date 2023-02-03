@@ -1,0 +1,198 @@
+### fastdfs约定
+1.   一个storage server进程只能从属于一个group。
+2.   同组中的storage server端口必须一致，挂载存储目录个数、路径要相同。 不同组的storage的端口号、存储目录个数、路径名可以不同。
+
+### 部署要点
+0. tracker 只管理集群拓扑数据，不存储任何文件索引，对硬件配置要求较低，为了实现互备，**两台tracker就够了。若集群规模较小，可复用storage机器**
+
+1. 在tracker的配置文件tracker.conf中设置好预留合适的空间.
+
+2. fastdfs存储文件是直接基于操作系统的文件系统的，**storage的性能瓶颈通常表现在磁盘IO**。为了充分利用文件系统的cache已加快文件访问，**推荐storage配置较大内存**，尤其在众多热点文件的场合下，大量IO吞吐也会消耗cpu
+
+3. storage，为了互相备份，**一个group内有两台storage即可**
+
+4.  storage 为了充分利用磁盘，推荐不做RAID，直接挂载单块硬盘，每块硬盘mount为一个路径，作为storage的一个store_path。
+
+5. **同组内的storage 端口号必须相同**，建议挂载存储个数相同、空间大小相同；同一主机上可以运行多个不同组的storage.
+
+6. 同组内的storage 若有多个tracker，应当配置上所有的tracker地址
+
+7. fastdfs从4.0.5开始去除了http文件下载功能，需要外部的web server，为了解决文件同步延迟的问题，apache或nginx上需要使用FastDFS提供的扩展模块，如nginx的fastdfs-nginx-module
+	- 在每台storage server上部署web server，直接对外提供HTTP服务
+	- tracker server上不需要部署web server
+	- 每个组必须有一个nginx，提供http文件访问服务.
+
+8. 海量小文件场景，建议使用文件合并存储特性，在tracker.conf 设置 use_trunck_file=true，**如果一个group存储的文件数不超过一千万，就没有必要使用这个特性**。
+
+9. 为了避免不必要的干扰集群安全考虑，**建议使用storage server id 方式。** tracker.conf 设置 use_storage_id=true 并在storage_ids.conf填写所有storage的id、所属组名，ip。这样做迁移很容易。
+
+=======================================安装手册 start=====================================================
+
+
+### 一、tracker 部署
+
+实现互备，两台tracker就够了，生产环境中注意更换端口
+
+1、创建宿主机挂载目录
+```bash
+# mkdir -p /data/docker/fastdfs/tracker/{conf,data}   #conf为tracker配置文件目录，data为tracker基础数据存储目录
+```
+
+2、设置 tracker 配置文件
+
+>[danger]推荐使用 setting_conf.sh.sh 来设置配置文件的参数，打开改脚本，修改tracker or storage的主要参数变量
+
+```bash
++ 将\fastdfs-conf\conf所有文件上传到/data/docker/fastdfs/tracker/conf，tracker只用到tracker.conf和storage_ids.conf，其他文件不用管。
+
++ 使用 ID 取代 ip，作为storage server的标识，强烈建议使用此方式，例如方便今后的迁移。use_storage_id = false 改为true， 并在storage_ids.conf填写所有storage的id、所属组名，ip
+
++ 为了安全，可限定连接到此tracker的ip 范围，默认是allow_hosts = *
+
++ reserved_storage_space storage为系统或其他应用留的空间，可以用绝对值（10 G或10240 M）或者百分比（V4开始支持百分比方式），网友说“最小阀值不要设置2%(有坑），设置5%可以”。
+  ## 同组中只要有一台服务器达到这个标准了，就不能上传文件了
+  ## no unit for byte(B) 不加单位默认是byte，例如20G=21474836480byte，reserved_storage_space = 21474836480
+  ## 经实践6.08版本配置百分比可以；绝对值不加单位默认byte可以；绝对值加单位报错（v6.0.8+更高版本修复） ERROR - file: shared_func.c, line: 2449, unkown byte unit:  MB, input string: 10240 MB 
+  ## 预留空间配置为绝对值，数值和单位之间不能有空格。
+
+...请阅读参数说明，调优其他参数
+
+```
+
+3、下载fastdfs镜像，或 加载离线镜像
+```bash
+# docker pull liyanjing/fastdfs:6.9.3-alpine
+# docker load -i /data/docker/images/liyanjing-fastdfs-6.9.3-alpine.tar && docker tag  365195874042  liyanjing/fastdfs:6.9.3-alpine
+```
+
+4、启动tracker容器
+```bash
+
+（2）运行fast-tracker容器
+# docker run -d --net=host  --restart=always --name=tracker  \
+-v /etc/localtime:/etc/localtime \
+-v /data/docker/fastdfs/tracker/data:/data/fastdfs_data \
+-v /data/docker/fastdfs/tracker/conf:/etc/fdfs \
+-d liyanjing/fastdfs:6.9.3-alpine tracker
+
+
+docker run -d --net=host  --restart=always --name=tracker-tmp  \
+-d liyanjing/fastdfs:6.9.3-alpine tracker
+
+（3）防火墙中打开tracker端口（默认的22122），生产环境中注意更换端口
+# firewall-cmd --zone=public --add-port=22122/tcp --permanent
+# firewall-cmd --reload
+
+```
+
+>去除注释和空行：egrep -v "#|^$" /data/docker/fastdfs/tracker/conf/fdfs/tracker.conf >/data/docker/fastdfs/tracker/conf/fdfs/tracker.conf.bak
+
+### 二、storage 部署
+
++ fastdfs 约定：`同组内的storage server端口必须一致，建议挂载存储目录个数、路径要相同`
+
++ 为了互相备份，一个group内有两台storage即可
+
++ fastdfs 镜像 已封装了 nginx\fastdfs扩展模块 作为web服务，向外提供http文件访问
+
+1、创建宿主机挂载目录
+
+```bash
+# mkdir -p /data/docker/fastdfs/storage/{conf,metadata,nginx_conf,nginx_conf.d}     #conf存放storge配置文件，metadata为storage基础数据
+# mkdir -p /data/docker/fastdfs/upload/{path0,path1,path2,path3} #存储上传的文件,当有多块硬盘时，挂载到相应目录上即可 /data/fastdfs/upload/path0~n
+```
+
+2、配置文件
+
+>[danger]推荐使用 setting_conf.sh.sh 来设置配置文件的参数，打开改脚本，修改tracker or storage的主要参数变量
+
+```bash
+配置文件我挂载的是目录，因此将fastdfs-conf\的所有配置文件上传到服务器
+
+用到的配置文件：storage.conf（storage配置文件），mod_fastdfs.conf（http文件访问的扩展模块的配置文件），nginx_conf/nginx.conf 与 nginx_conf.d/default.conf（nginx的配置文件）
+
+需要调整的主要参数:
+1. storage.conf
+	group_name = group1                         # 指定storage所属组	
+	base_path = /data/fastdfs_data         # Storage 基础数据和日志的存储目录	
+	store_path_count = 1                      # 上传文件存放目录的个数
+	store_path0 = /data/fastdfs/upload/path0  # 逐一配置 store_path_count 个路径，索引号基于 0。
+	tracker_server = 172.16.100.90:22122       # tracker_server 的列表 ，有多个时，每个 tracker server 写一行
+	allow_hosts = *                                          ## 允许连接本storage server的IP地址列表，为了安全期间，可以设置。
+2. mod_fastdfs.conf
+	tracker_server = 172.16.100.90:22122   # tracker服务器的IP地址以及端口号，多个时，每个tracker server写一行
+	storage_server_port = 23000               # 本地storage的端口号，fastdfs约定"同组下的storage端口必须一致"
+	group_name = group1                       # 本地storage的组名
+	url_have_group_name = true            # url中是否有group名，默认是false，这个参数必须正确设置，否则文件不能被下载到
+	store_path_count = 1                       # 本地storage的存储路径个数，必须和storage.conf中的配置一样
+	store_path0 = /data/fastdfs/upload/path0         #本地storage的存储路径，必须和storage.conf中的配置一样
+
+	## 如果在此存储服务器上支持多组时，有几组就设置几组。单组为0.
+	## 通常一台机器运行一个storage就行，没有必要运行多个group的storage，因为stroage本身支持多存储目录的
+                ## 使用docker 一个容器运行一个storage，此处就不用管了
+	group_count = 0
+	#[group1]
+	#group_name=group1
+	#storage_server_port=23000
+	#store_path_count=1
+	#store_path0=/data/fastdfs/upload/path0
+```
+```bash
+3. http.conf        当需要开启token时，更改此文件
+4. mime.types    资源的媒体类型，当文件的后缀在此文件中找不到时，需要在这个文件中添加。
+5. client.conf      当需要使用fastdfs自带的客户端时，更改此文件
+	tracker_server = 172.16.100.90:22122
+
+6. nginx_conf.d/default.conf
+        # 将http文件访问请求反向代理给扩展模块
+        location ~/group[0-9]/ {
+              ngx_fastdfs_module;
+        }
+
+#        location ~ /group1/M00 {
+#              alias  /data/fastdfs/upload/path0;
+#              ngx_fastdfs_module;
+#        }
+
+
+```
+```bash
+3、启动 storage 容器
+# docker run -d --net=host --restart always --name=storage1_1 \
+--privileged=true \
+-v /etc/localtime:/etc/localtime \
+-v /data/docker/fastdfs/storage/metadata:/data/fastdfs_data \
+-v /data/docker/fastdfs/storage/conf:/etc/fdfs \
+-v /data/docker/fastdfs/upload:/data/fastdfs/upload \
+-v /data/docker/fastdfs/storage/nginx_conf/nginx.conf:/usr/local/nginx/conf/nginx.conf  \
+-v /data/docker/fastdfs/storage/nginx_conf.d:/usr/local/nginx/conf.d  \
+-d liyanjing/fastdfs:6.9.3-alpine  storage
+
+防火墙中打开storage服务端口（默认的23000，生产环境中注意更换端口），nginx的端口9088
+# firewall-cmd --zone=public --add-port=23000/tcp --permanent
+# firewall-cmd --zone=public --add-port=9088/tcp --permanent
+# firewall-cmd --reload
+
+4、 查看下集群运行状态
+# docker exec -it storage1_1 sh
+# /usr/bin/fdfs_monitor /etc/fdfs/storage.conf
+
+文件访问：http://172.16.100.90:9088/group1/M00/00/00/oYYBAGMi4zGAYNoxABY-esN9nNw502.jpg
+``` 
+
+文件上传demo《E:\gitplace\springboot-fastdfs》
+
+5、nginx 日期定期切分和过期清理
+生产环境中一般会在storage nginx前再加一层代理，我这里设置access_log off; 不记录日志了，调试时可以打开。
+
+...
+
+6、http 文件访问 负载入口高可用
+nginx + keepalived
+nginx反向代理storage文件的配置:《E:\工具箱\08. docker\3.docker_container_install\nginx\（lvs-webpage-api-oss）default.conf》
+
+7、扩展，增加storage
+  1. 若使用了storage_ids.conf，则需要修改所有的tracker的storage_ids.conf，填写一行 storage id，注意奥"要重启tracker才能生效"。
+  2. storage 部署，见上面。
+
+8、使用shell脚本调client 删除历史文件

@@ -1,0 +1,407 @@
+## 这个配置文件是否不生效，false 为生效
+# is this config file disabled
+# false for enabled
+# true for disabled
+disabled = false
+
+## 是否绑定ip，如果不填就代表所有的ip都提供服务
+# bind an address of this host
+# empty for bind all addresses of this host
+bind_addr =
+
+## Tracker的端口号
+# the tracker server port
+port = 22122
+
+## 连接超时时间，单位为秒
+# connect timeout in seconds
+# default value is 30
+# Note: in the intranet network (LAN), 2 seconds is enough.
+connect_timeout = 5
+
+## tracker server的网络超时，单位为秒。发送或接收数据时，如果在超时时间后还不能发送或接收数据，则本次网络通信失败。
+# network timeout in seconds for send and recv
+# default value is 30
+network_timeout = 60
+
+## base_path 目录地址存放元数据，注意根目录必须存在,子目录会自动创建
+## 附目录说明:
+##  tracker server目录及文件结构：
+##  ${base_path}
+##    |__data
+##    |     |__storage_groups.dat：存储分组信息
+##    |     |__storage_servers.dat：存储服务器列表
+##    |__logs
+##          |__trackerd.log：tracker server日志文件
+##
+# the base path to store data and log files
+base_path = /home/yuqing/fastdfs
+
+## 此服务器支持的最大并发连接数，不是最大连接数。
+## 32位系统内存空间不能超过4G，会导致不能再创建更多的线程。
+## 记得调整下操作系统允许的线程数
+# max concurrent connections this server support
+# you should set this parameter larger, eg. 10240
+# default value is 256
+max_connections = 1024
+
+## 接收线程数，建议为1
+# accept thread count
+# default value is 1 which is recommended
+# since V4.07
+accept_threads = 1
+
+## 工作线程数，推荐设置为cpu数
+# work thread count
+# work threads to deal network io
+# default value is 4
+# since V2.00
+work_threads = 4
+
+## 最小网络缓存
+# the min network buff size
+# default value 8KB
+min_buff_size = 8KB
+
+## 最大网络缓存
+# the max network buff size
+# default value 128KB
+max_buff_size = 128KB
+
+## 上传文件选择group的方式，0负载均衡，1指定一个group,2选择最大剩余空间的卷上传
+# the method for selecting group to upload files
+# 0: round robin
+# 1: specify group
+# 2: load balance, select the max free space group to upload file
+store_lookup = 2
+
+## 只有当参数store_lookup=1时，store_group这个参数才有意义，并且必须设定。
+## store_group是指文件上传到的group，最多只能配置一个group。
+# which group to upload file
+# when store_lookup set to 1, must set store_group to the group name
+store_group = group2
+
+## 选择 group 中的哪台storage用来上传文件，0随机，1按ip排序（ip最小的来上传文件），2根据优先级进行排序（上传优先级由storage server来设置，参数名为upload_priority）
+## 当采用小文件合并存储机制（use_trunk_file为true，默认是false）时，store_server必须设置为1 或 2
+# which storage server to upload file
+# 0: round robin (default)
+# 1: the first server order by ip address
+# 2: the first server order by priority (the minimal)
+# Note: if use_trunk_file set to true, must set store_server to 1 or 2
+store_server = 0
+
+## 选择storage server 中的哪个目录进行上传。storage server可以有多个存储文件的base path（可以理解为多个磁盘）。
+# 0: 轮流方式，多个目录依次存放文件
+# 2: 选择剩余空间最大的目录存放文件（注意：剩余磁盘空间是动态的，因此存储到的目录或磁盘可能也是变化的）
+# which path (means disk or mount point) of the storage server to upload file
+# 0: round robin
+# 2: load balance, select the max free space path to upload file
+store_path = 0
+
+# 选择哪个 storage server 作为下载服务器，0: 轮询方式，1: 哪个为源storage server 就用哪一个 (前面说过了这个storage server源 是怎样产生的) 就是之前上传到哪个storage server服务器就是哪个了
+# which storage server to download file
+# 0: round robin (default)
+# 1: the source storage server which the current file uploaded to
+download_server = 0
+
+## storage server 上为系统、其他应用保留的空间，可以用绝对值（10G或1024M）或者百分比（V4开始支持百分比方式）。
+## 经实践6.07版本配置百分比可以；绝对值加单位报错，绝对值不加单位可以。
+## reserved_storage_space = 10240 MB,“数和单位之间”有\无空格，tracker启动报错：ERROR - file: shared_func.c, line: 2449, unkown byte unit:  MB, input string: 10240 MB
+## 如果同组的服务器的硬盘大小一样,以最小的为准,也就是只要同组中有一台服务器达到这个标准了,这个标准就生效,原因就是因为他们进行备份
+# reserved storage space for system or other applications.
+# if the free(available) space of any stoarge server in 
+# a group <= reserved_storage_space, no file can be uploaded to this group.
+# bytes unit can be one of follows:
+### G or g for gigabyte(GB)
+### M or m for megabyte(MB)
+### K or k for kilobyte(KB)
+### no unit for byte(B)
+### XX.XX% as ratio such as: reserved_storage_space = 10%
+reserved_storage_space = 10%
+
+## 日志级别 debug<info<notice
+#standard log level as syslog, case insensitive, value list:
+### emerg for emergency
+### alert
+### crit for critical
+### error
+### warn for warning
+### notice
+### info
+### debug
+log_level = info
+
+## 操作系统运行FastDFS的用户组 (不填 就是当前用户组,哪个启动进程就是哪个)
+#unix group name to run this program, 
+#not set (empty) means run by the group of current user
+run_by_group=
+
+## 操作系统运行FastDFS的用户 (不填 就是当前用户,哪个启动进程就是哪个)
+#unix username to run this program,
+#not set (empty) means run by current user
+run_by_user =
+
+## 可以连接到此 tracker server 的ip范围（对所有类型的连接都有影响，包括客户端，storage server）
+## 只要知道tracker的服务器IP和端口，任何都可以使用api上传文件，这样是否会有恶意上传的问题,因此限定访问tracker的ip范围
+# allow_hosts can ocur more than once, host can be hostname or ip address,
+# "*" (only one asterisk) means match all ip addresses
+# we can use CIDR ips like 192.168.5.64/26
+# and also use range like these: 10.0.1.[0-254] and host[01-08,20-25].domain.com
+# for example:
+# allow_hosts=10.0.1.[1-15,20]
+# allow_hosts=host[01-08,20-25].domain.com
+# allow_hosts=192.168.5.64/26
+allow_hosts = *
+
+## 同步或刷新日志信息到硬盘的时间间隔，单位为秒
+## 注意：tracker server 的日志不是时时写硬盘的，而是先写内存。
+# sync log buff to disk every interval seconds
+# default value is 10 seconds
+sync_log_buff_interval = 1
+
+## 检测 storage server 存活的时间隔，单位为秒。
+# check storage server alive interval seconds
+check_active_interval = 120
+
+## 线程栈的大小,必须大于64KB
+## 线程栈越大，一个线程占用的系统资源就越多。如果要启动更多的线程（V1.x对应的参数为max_connections，V2.0为work_threads），可以适当降低本参数值。
+# thread stack size, should >= 64KB
+# default value is 256KB
+thread_stack_size = 256KB
+
+## 这个参数控制当storage server IP地址改变时，集群是否自动调整。注：只有在storage server进程重启时才完成自动调整
+# auto adjust when the ip address of the storage server changed
+# default value is true
+storage_ip_changed_auto_adjust = true
+
+##  V2.0引入的参数。存储服务器之间同步文件的最大延迟时间，缺省为1天。根据实际情况进行调整
+## 注：本参数并不影响文件同步过程。本参数仅在下载文件时，判断文件是否已经被同步完成的一个阀值（经验值）
+# storage sync file max delay seconds
+# default value is 86400 seconds (one day)
+# since V2.00
+storage_sync_file_max_delay = 86400
+
+## V2.0引入的参数。存储服务器同步一个文件需要消耗的最大时间，缺省为300s，即5分钟。
+## 注：本参数并不影响文件同步过程。本参数仅在下载文件时，作为判断当前文件是否被同步完成的一个阀值（经验值）
+# the max time of storage sync a file
+# default value is 300 seconds
+# since V2.00
+storage_sync_file_max_time = 300
+
+## V3.0引入的参数。是否使用小文件合并存储特性，缺省是关闭的。
+## 海量小文件带来的挑战，解决两个主要问题：文件系统inode不足和文件系统定位文件的效率急剧下降。
+## 修改了合并存储相关参数后，需要先重启tracker server，然后再重启storage server，因为合并存储参数在tracker.conf中配置，storage server启动的时候，从tracker server上获取
+# if use a trunk file to store several small files
+# default value is false
+# since V3.00
+use_trunk_file = false 
+
+## V3.0引入的参数。trunk file分配的最小字节数。比如文件只有16个字节，系统也会分配slot_min_size个字节。
+# the min slot size, should <= 4KB
+# default value is 256 bytes
+# since V3.00
+slot_min_size = 256
+
+## V3.0引入的参数。只有文件大小<=这个参数值的文件，才会合并存储。如果一个文件的大小大于这个参数值，将直接保存到一个文件中（即不采用合并存储方式）。
+# the max slot size, should > slot_min_size
+# store the upload file to trunk file when it's size <=  this value
+# default value is 16MB
+# since V3.00
+slot_max_size = 1MB
+
+
+# the alignment size to allocate the trunk space
+# default value is 0 (never align)
+# since V6.05
+# NOTE: the larger the alignment size, the less likely of disk
+#       fragmentation, but the more space is wasted.
+trunk_alloc_alignment_size = 256
+
+# if merge contiguous free spaces of trunk file
+# default value is false
+# since V6.05
+trunk_free_space_merge = true
+
+# if delete / reclaim the unused trunk files
+# default value is false
+# since V6.05
+delete_unused_trunk_files = false
+
+## 合并存储的trunk file大小，至少4MB，缺省值是64MB。不建议设置得过大。
+# the trunk file size, should >= 4MB
+# default value is 64MB
+# since V3.00
+trunk_file_size = 64MB
+
+##是否提前创建trunk file。只有当这个参数为true，下面3个以trunk_create_file_打头的参数才有效。
+# if create trunk file advancely
+# default value is false
+# since V3.06
+trunk_create_file_advance = false
+
+## 提前创建trunk file的起始时间点（基准时间），02:00表示第一次创建的时间点是凌晨2点。
+# the time base to create trunk file
+# the time format: HH:MM
+# default value is 02:00
+# since V3.06
+trunk_create_file_time_base = 02:00
+
+## 创建trunk file的时间间隔，单位为秒。如果每天只提前创建一次，则设置为86400
+# the interval of create trunk file, unit: second
+# default value is 38400 (one day)
+# since V3.06
+trunk_create_file_interval = 86400
+
+## 提前创建trunk file时，需要达到的空闲trunk大小，比如本参数为20G，而当前空闲trunk为4GB，那么只需要创建16GB的trunk file即可。
+# the threshold to create trunk file
+# when the free trunk file size less than the threshold,
+# will create he trunk files
+# default value is 0
+# since V3.06
+trunk_create_file_space_threshold = 20G
+
+## trunk初始化时，是否检查可用空间是否被占用
+# if check trunk space occupying when loading trunk free spaces
+# the occupied spaces will be ignored
+# default value is false
+# since V3.09
+# NOTICE: set this parameter to true will slow the loading of trunk spaces 
+# when startup. you should set this parameter to true when neccessary.
+trunk_init_check_occupying = false
+
+## 是否无条件从trunk binlog中加载trunk可用空间信息，FastDFS缺省是从快照文件storage_trunk.dat中加载trunk可用空间，该文件的第一行记录的是trunk binlog的offset，然后从binlog的offset开始加载
+# if ignore storage_trunk.dat, reload from trunk binlog
+# default value is false
+# since V3.10
+# set to true once for version upgrade when your version less than V3.10
+trunk_init_reload_from_binlog = false
+
+# the min interval for compressing the trunk binlog file
+# unit: second, 0 means never compress
+# FastDFS compress the trunk binlog when trunk init and trunk destroy
+# recommand to set this parameter to 86400 (one day)
+# default value is 0
+# since V5.01
+trunk_compress_binlog_min_interval = 86400
+
+# the interval for compressing the trunk binlog file
+# unit: second, 0 means never compress
+# recommand to set this parameter to 86400 (one day)
+# default value is 0
+# since V6.05
+trunk_compress_binlog_interval = 86400
+
+# compress the trunk binlog time base, time format: Hour:Minute
+# Hour from 0 to 23, Minute from 0 to 59
+# default value is 03:00
+# since V6.05
+trunk_compress_binlog_time_base = 03:00
+
+## binlog 文件的最大备份数
+# max backups for the trunk binlog file
+# default value is 0 (never backup)
+# since V6.05
+trunk_binlog_max_backups = 7
+
+## ***使用storage的 ID 作为storage server标识，建议使用此方式。
+## 如果需要支持双IP,就必须用此方式。一个内网IP，一个外网IP,解决跨机房或混合云部署问题。
+# if use storage server ID instead of IP address
+# if you want to use dual IPs for storage server, you MUST set
+# this parameter to true, and configure the dual IPs in the file
+# configured by following item "storage_ids_filename", such as storage_ids.conf
+# default value is false
+# since V4.00
+use_storage_id = true
+
+## 当 use_storage_id 设置为true，才需要设置本参数，在文件中设置组名、server ID和对应的IP地址，参见源码目录下的配置示例：conf/storage_ids.conf
+# specify storage ids filename, can use relative or absolute path
+# this parameter is valid only when use_storage_id set to true
+# since V4.00
+storage_ids_filename = storage_ids.conf
+
+# id type of the storage server in the filename, values are:
+## ip: the ip address of the storage server
+## id: the server id of the storage server
+# this paramter is valid only when use_storage_id set to true
+# default value is ip
+# since V4.03
+id_type_in_filename = id
+
+## 存储从文件是否采用symbol link（符号链接）方式，如果设置为true，一个从文件将占用两个文件：原始文件及指向它的符号链接。
+# if store slave file use symbol link
+# default value is false
+# since V4.01
+store_slave_file_use_link = false
+
+## 日志轮转和定期清除（删除N天之前的日志文件）,默认为false
+# if rotate the error log every day
+# default value is false
+# since V4.02
+rotate_error_log = false
+
+##error log定期轮转的时间点，只有当rotate_error_log设置为true时有效
+# rotate error log time base, time format: Hour:Minute
+# Hour from 0 to 23, Minute from 0 to 59
+# default value is 00:00
+# since V4.02
+error_log_rotate_time = 00:00
+
+# if compress the old error log by gzip
+# default value is false
+# since V6.04
+compress_old_error_log = false
+
+# 删除N天之前的压缩的错误日志文件
+# compress the error log days before
+# default value is 1
+# since V6.04
+compress_error_log_days_before = 7
+
+## error log按大小轮转，设置为0表示不按文件大小轮转，否则当error log达到该大小，就会轮转到新文件中
+# rotate error log when the log file exceeds this size
+# 0 means never rotates log file by log file size
+# default value is 0
+# since V4.02
+rotate_error_log_size = 0
+
+## log 文件保留的天数，0表示不删除旧的日志文件
+# keep days of the log files
+# 0 means do not delete old log files
+# default value is 0
+log_file_keep_days = 0
+
+# if use connection pool
+# default value is false
+# since V4.05
+use_connection_pool = true
+
+# connections whose the idle time exceeds this time will be closed
+# unit: second
+# default value is 3600
+# since V4.05
+connection_pool_max_idle_time = 3600
+
+## 支持以HTTP方式下载文件，不用理会这个配置项
+## fastdfs内置的web server从4.0.5版本就移除了（因为之前自带的HTTP服务较为简单，无法提供负载均衡等高性能服务），而是使用外部web server（apache和nginx）提供http文件访问服务。
+## 为了解决文件同步延迟的问题，apache或nginx上需要使用FastDFS提供的扩展模块，如nginx的fastdfs-nginx-module
+## 在每台storage server上部署web server，直接对外提供HTTP服务
+## tracker server上不需要部署web server
+# HTTP port on this tracker server
+http.server_port = 8080
+
+# check storage HTTP server alive interval seconds
+# <= 0 for never check
+# default value is 30
+http.check_alive_interval = 30
+
+# check storage HTTP server alive type, values are:
+#   tcp : connect to the storge server with HTTP port only, 
+#        do not request and get response
+#   http: storage check alive url must return http status 200
+# default value is tcp
+http.check_alive_type = tcp
+
+# check storage HTTP server alive uri/url
+# NOTE: storage embed HTTP server support uri: /status.html
+http.check_alive_uri = /status.html
+
