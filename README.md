@@ -9,17 +9,17 @@
        若没有及时构建新版本的镜像，有需要尝新的同学可参考历史版本的dockerfile 自行构建。
 
 ### .目录结构
-  |--fastdfs架构剖析（原作者的ppt）
-  |--fastdf配置文件参数注解
-  |--fastdfs安装包和部署操作手册
-      |--fastdht-dockerfile 通常用不着
-      |--fastdfs-dockerfile
-          |--build_image-v6.9.3 离线构建fastdfs镜像
-          |--fastdfs-conf       安装fastdfs用的配置文件，其实和build_image_v.x下的文件是相同的。
-               |--setting_conf.sh    设置配置文件参数的脚本
-          |--fastdfs安装手册.txt
-          |--fastdfs离线构建自定义镜像手册.txt
-          |--qa.txt 来自于bbs论坛的问题整理：http://bbs.chinaunix.net/forum-240-1.html
+    ./fastdfs架构剖析（原作者的ppt）
+    ./fastdf配置文件参数注解
+    ./fastdfs安装包和部署操作手册
+       |--fastdht-dockerfile 通常用不着
+       |--fastdfs-dockerfile
+              |--build_image-v6.9.3 离线构建fastdfs镜像
+              |--fastdfs-conf       安装fastdfs用的配置文件，其实和build_image_v.x下的文件是相同的。
+                     |--setting_conf.sh    设置配置文件参数的脚本
+              |--fastdfs安装手册.txt
+              |--fastdfs离线构建自定义镜像手册.txt
+              |--qa.txt 来自于bbs论坛的问题整理：http://bbs.chinaunix.net/forum-240-1.html
 		  
 ### .fastdfs 版本安装变化
 
