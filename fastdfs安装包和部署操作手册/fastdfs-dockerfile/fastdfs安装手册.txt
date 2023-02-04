@@ -11,11 +11,11 @@
 
 3. storage，为了互相备份，**一个group内有两台storage即可**
 
-4.  storage 为了充分利用磁盘，推荐不做RAID，直接挂载单块硬盘，每块硬盘mount为一个路径，作为storage的一个store_path。
+4. storage 为了充分利用磁盘，推荐不做RAID，直接挂载单块硬盘，每块硬盘mount为一个路径，作为storage的一个store_path。
 
-5. **同组内的storage 端口号必须相同**，建议挂载存储个数相同、空间大小相同；同一主机上可以运行多个不同组的storage.
+5. **同组内的storage 端口号必须相同**，建议挂载存储个数相同、空间大小相同；假若机器数量有限还想分组存储，同一主机上可以运行多个不同组的storage，但是通常我们一台主机运行一个storage.
 
-6. 同组内的storage 若有多个tracker，应当配置上所有的tracker地址
+6. 同组内的storage 若指向多个tracker，应当配置上所有的tracker地址
 
 7. fastdfs从4.0.5开始去除了http文件下载功能，需要外部的web server，为了解决文件同步延迟的问题，apache或nginx上需要使用FastDFS提供的扩展模块，如nginx的fastdfs-nginx-module
 	- 在每台storage server上部署web server，直接对外提供HTTP服务
@@ -113,12 +113,12 @@ docker run -d --net=host  --restart=always --name=tracker-tmp  \
 
 需要调整的主要参数:
 1. storage.conf
-	group_name = group1                         # 指定storage所属组	
-	base_path = /data/fastdfs_data         # Storage 基础数据和日志的存储目录	
+	group_name = group1                       # 指定storage所属组	
+	base_path = /data/fastdfs_data            # Storage 基础数据和日志的存储目录	
 	store_path_count = 1                      # 上传文件存放目录的个数
 	store_path0 = /data/fastdfs/upload/path0  # 逐一配置 store_path_count 个路径，索引号基于 0。
-	tracker_server = 172.16.100.90:22122       # tracker_server 的列表 ，有多个时，每个 tracker server 写一行
-	allow_hosts = *                                          ## 允许连接本storage server的IP地址列表，为了安全期间，可以设置。
+	tracker_server = 172.16.100.90:22122      # tracker_server 的列表 ，有多个时，每个 tracker server 写一行
+	allow_hosts = *                           ## 允许连接本storage server的IP地址列表，为了安全期间，可以设置。
 2. mod_fastdfs.conf
 	tracker_server = 172.16.100.90:22122   # tracker服务器的IP地址以及端口号，多个时，每个tracker server写一行
 	storage_server_port = 23000               # 本地storage的端口号，fastdfs约定"同组下的storage端口必须一致"

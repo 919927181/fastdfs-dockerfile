@@ -4,11 +4,12 @@
 #
 
 
-# 1. tracker 主要参数，生产环境中建议更改一下端口
+# 1. tracker 主要参数变量，生产环境中建议更改一下端口
 tracker_port=22122
 # 实现互备，两台tracker就够了
 tracker_server="tracker_server = 172.16.100.90:$tracker_port\ntracker_server = 172.16.100.91:$tracker_port"
 
+# 使用 ID 取代 ip，作为storage server的标识，强烈建议使用此方式，例如方便今后的迁移。use_storage_id = false 改为true， 并在storage_ids.conf填写所有storage的id、所属组名，ip
 # 格式：<id>  <group_name>  <ip_or_hostname
 storage_ids="
 100001   group1  172.16.100.90
@@ -18,10 +19,12 @@ storage_ids="
 # 设置tracker访问IP限制，避免谁都能上传文件，默认是allow_hosts = *
 allow_hosts="allow_hosts = 172.16.100.[85-91,83]\n"
 
-# 2. local storage 主要参数，生产环境中建议更改一下端口
+# 2. local storage 主要参数变量，生产环境中建议更改一下端口，fastdfs约定"同组下的storage端口必须一致"
+# 设定storage所属组
 storage_group_name="group1"
+# 设定storage的端口号
 storage_server_port=23000
-store_path_count=1   #文件存储目录的个数，存储目录约定为/data/fastdfs/upload/path0~n
+store_path_count=1   #设置文件存储目录的个数，存储目录约定为/data/fastdfs/upload/path0~n
 
 #==================以下是方法体================================
 function tracker_confset() {

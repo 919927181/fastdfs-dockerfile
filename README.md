@@ -18,8 +18,16 @@
               |--fastdfs-conf       安装fastdfs用的配置文件，其实和build_image_v.x下的文件是相同的。
                      |--setting_conf.sh    设置配置文件参数的脚本
               |--fastdfs安装手册.txt
-              |--fastdfs离线构建自定义镜像手册.txt
+              |--fastdfs离线构建镜像手册.txt
               |--qa.txt 来自于bbs论坛的问题整理：http://bbs.chinaunix.net/forum-240-1.html
+			  
+### .新同学快速入门
+
+     1. 阅读 fastdfs架构剖析.ppt
+	 2. 结合 fastdfs架构图->理解配置文件参数->qa.txt 来自于bbs论坛的问题整理
+	 3. 跑起来-> \fastdfs安装包和部署操作手册\论坛上的安装手册-供参考学习\集群安装教程
+	 4. 安装 fastdfs安装手册.txt  掌握了上面的知识和安装练习后->老鸟
+
 		  
 ### .fastdfs 版本安装变化
 
