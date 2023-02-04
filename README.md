@@ -1,9 +1,11 @@
 # fastdfs-dockerfile
 
 ### .项目说明
-  感谢余庆大佬开源的FastDFS分布式对象存储系统，github: https://github.com/happyfish100/fastdfs
+  本仓库用于存储fastdfs离线构建镜像的资源和以docker方式的安装手册，感谢余庆大佬开源的FastDFS分布式对象存储系统。
   
-  本仓库用于存储fastdfs离线构建镜像的资源和以docker方式的安装手册
+  原作者github: https://github.com/happyfish100/fastdfs
+  
+  hub-docker镜像：https://hub.docker.com/r/liyanjing/fastdfs
   
   备注：PR 提交了v6.08版本的dockerfile和安装手册，github:  https://github.com/happyfish100/fastdfs/tree/master/docker/dockerfile_local-v6.0.9 
        若没有及时构建新版本的镜像，有需要尝新的同学可参考历史版本的dockerfile 自行构建。

@@ -28,6 +28,11 @@
 
 =======================================安装手册 start=====================================================
 
+下载fastdfs镜像，或 加载离线镜像
+```bash
+# docker pull liyanjing/fastdfs:6.9.3-alpine
+# docker load -i /data/docker/images/liyanjing-fastdfs-6.9.3-alpine.tar && docker tag  365195874042  liyanjing/fastdfs:6.9.3-alpine
+```
 
 ### 一、tracker 部署
 
@@ -59,13 +64,7 @@
 
 ```
 
-3、下载fastdfs镜像，或 加载离线镜像
-```bash
-# docker pull liyanjing/fastdfs:6.9.3-alpine
-# docker load -i /data/docker/images/liyanjing-fastdfs-6.9.3-alpine.tar && docker tag  365195874042  liyanjing/fastdfs:6.9.3-alpine
-```
-
-4、启动tracker容器
+3、启动tracker容器
 ```bash
 
 （2）运行fast-tracker容器
