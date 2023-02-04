@@ -23,7 +23,7 @@
               |--fastdfs离线构建镜像手册.txt
               |--qa.txt 来自于bbs论坛的问题整理：http://bbs.chinaunix.net/forum-240-1.html
 			  
-### .新同学快速入门
+### .快速入门
 
      1. 阅读 fastdfs架构剖析.ppt
 	 2. 结合 fastdfs架构图->理解配置文件参数->qa.txt 来自于bbs论坛的问题整理
